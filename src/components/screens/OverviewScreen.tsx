@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  DollarSign,
+  IndianRupee,
   ArrowRightLeft,
   Gauge,
   Store,
@@ -120,22 +120,22 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
               Total Referral GMV & Revenue
             </span>
             <div className="w-7 h-7 rounded bg-cyan-950/60 text-cyan-400 flex items-center justify-center">
-              <DollarSign className="w-4 h-4" />
+              <IndianRupee className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl lg:text-3xl font-bold text-white font-['Hanken_Grotesk']">
-              $482,910
+              ₹482,910
             </span>
           </div>
           <div className="mt-1 flex items-center gap-1.5">
             <span className="font-mono text-[10px] font-bold text-emerald-300 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-800/50">
-              +$38,420 (18.4% MoM)
+              +₹38,420 (18.4% MoM)
             </span>
           </div>
           <div className="mt-3 text-xs text-[#94a3b8] flex items-center justify-between border-t border-[#1e293b] pt-2">
             <span>Net CPA Affiliate Fee:</span>
-            <span className="font-mono font-bold text-cyan-300">$42,180 earned</span>
+            <span className="font-mono font-bold text-cyan-300">₹42,180 earned</span>
           </div>
         </div>
 
@@ -161,7 +161,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
           </div>
           <div className="mt-3 text-xs text-[#94a3b8] flex items-center justify-between border-t border-[#1e293b] pt-2">
             <span>Total Patient Savings:</span>
-            <span className="font-mono font-bold text-emerald-300">$1.42M aggregate</span>
+            <span className="font-mono font-bold text-emerald-300">₹1.42 Cr aggregate</span>
           </div>
         </div>
 
@@ -245,7 +245,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
                 </span>
                 <span className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 bg-cyan-400 rounded-xs"></span>
-                  <span>Avg Ticket ($)</span>
+                  <span>Avg Ticket (₹)</span>
                 </span>
               </div>
             </div>
@@ -312,7 +312,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
                   <div>
                     <div className="flex justify-between text-[11px] mb-1">
                       <span className="font-medium text-[#cbd5e1]">Cardiovascular (Statins / ACE)</span>
-                      <span className="font-mono text-[#94a3b8]">38.4% ($185k)</span>
+                      <span className="font-mono text-[#94a3b8]">38.4% (₹185k)</span>
                     </div>
                     <div className="w-full bg-[#1e293b] h-1.5 rounded-full overflow-hidden">
                       <div className="bg-[#0284c7] h-full" style={{ width: '38.4%' }}></div>
@@ -322,7 +322,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
                   <div>
                     <div className="flex justify-between text-[11px] mb-1">
                       <span className="font-medium text-[#cbd5e1]">Anti-diabetic (DPP-4 / Metformin)</span>
-                      <span className="font-mono text-[#94a3b8]">29.1% ($140k)</span>
+                      <span className="font-mono text-[#94a3b8]">29.1% (₹140k)</span>
                     </div>
                     <div className="w-full bg-[#1e293b] h-1.5 rounded-full overflow-hidden">
                       <div className="bg-emerald-500 h-full" style={{ width: '29.1%' }}></div>
@@ -332,7 +332,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
                   <div>
                     <div className="flex justify-between text-[11px] mb-1">
                       <span className="font-medium text-[#cbd5e1]">Gastrointestinal (PPIs)</span>
-                      <span className="font-mono text-[#94a3b8]">18.6% ($89k)</span>
+                      <span className="font-mono text-[#94a3b8]">18.6% (₹89k)</span>
                     </div>
                     <div className="w-full bg-[#1e293b] h-1.5 rounded-full overflow-hidden">
                       <div className="bg-cyan-400 h-full" style={{ width: '18.6%' }}></div>
@@ -342,7 +342,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
                   <div>
                     <div className="flex justify-between text-[11px] mb-1">
                       <span className="font-medium text-[#cbd5e1]">Antibiotics & Respiratory</span>
-                      <span className="font-mono text-[#94a3b8]">13.9% ($67k)</span>
+                      <span className="font-mono text-[#94a3b8]">13.9% (₹67k)</span>
                     </div>
                     <div className="w-full bg-[#1e293b] h-1.5 rounded-full overflow-hidden">
                       <div className="bg-purple-400 h-full" style={{ width: '13.9%' }}></div>
@@ -412,15 +412,15 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
 
                       <td className="py-2.5 px-3">
                         <div className="font-mono text-[11px]">
-                          <span className="line-through text-[#64748b] mr-1">${drug.brandPrice.toFixed(2)}</span>
-                          <span className="font-bold text-white">${drug.genericPriceAvg.toFixed(2)}</span>
+                          <span className="line-through text-[#64748b] mr-1">₹{drug.brandPrice.toFixed(2)}</span>
+                          <span className="font-bold text-white">₹{drug.genericPriceAvg.toFixed(2)}</span>
                         </div>
                         <div className="font-mono text-[10px] text-[#64748b]">30 Day Supply</div>
                       </td>
 
                       <td className="py-2.5 px-3">
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-950/60 border border-emerald-800/50 text-emerald-300">
-                          {drug.savingsPercent}% Savings (-${drug.savingsAmount.toFixed(2)})
+                          {drug.savingsPercent}% Savings (-₹{drug.savingsAmount.toFixed(2)})
                         </span>
                       </td>
 

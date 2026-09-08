@@ -103,7 +103,7 @@ export const DeliveryManagementScreen: React.FC<DeliveryManagementScreenProps> =
             <span className="text-[11px] font-mono">TOTAL GENERIC SAVINGS</span>
             <Sparkles className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="text-2xl font-bold text-emerald-400 font-mono">${totalSavings.toFixed(2)}</div>
+          <div className="text-2xl font-bold text-emerald-400 font-mono">₹{totalSavings.toFixed(2)}</div>
           <div className="text-[10px] text-[#94a3b8] font-mono mt-0.5">Average 89.2% price reduction</div>
         </div>
 
@@ -224,7 +224,7 @@ export const DeliveryManagementScreen: React.FC<DeliveryManagementScreenProps> =
 
                   <div>
                     <span className="text-[10px] uppercase text-[#64748b] font-mono block">TOTAL</span>
-                    <span className="font-bold text-white font-mono">${order.totalPrice.toFixed(2)}</span>
+                    <span className="font-bold text-white font-mono">₹{order.totalPrice.toFixed(2)}</span>
                   </div>
 
                   <div>
@@ -281,7 +281,7 @@ export const DeliveryManagementScreen: React.FC<DeliveryManagementScreenProps> =
                       <div className="flex items-center gap-2 mt-1 flex-wrap text-[11px]">
                         <span className="text-[#94a3b8]">Dispensary: <strong className="text-white">{order.pharmacyPartner}</strong></span>
                         <span>•</span>
-                        <span className="text-emerald-400 font-mono font-semibold">Saved ${order.savingsAmount.toFixed(2)}</span>
+                        <span className="text-emerald-400 font-mono font-semibold">Saved ₹{order.savingsAmount.toFixed(2)}</span>
                         {order.coldChain.required && (
                           <span className="px-1.5 py-0.2 rounded bg-cyan-950 text-cyan-300 border border-cyan-800 text-[10px] font-mono flex items-center gap-1">
                             <ThermometerSnowflake className="w-2.5 h-2.5" />

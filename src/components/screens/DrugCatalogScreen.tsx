@@ -170,7 +170,7 @@ export const DrugCatalogScreen: React.FC<DrugCatalogScreenProps> = ({
           </div>
           <div className="mt-1 flex items-center gap-1.5">
             <span className="font-mono text-[10px] text-purple-300 font-bold bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-800/40">
-              $112.40 Average Saved / Rx
+              ₹112.40 Average Saved / Rx
             </span>
           </div>
           <div className="mt-3 text-xs text-[#94a3b8] border-t border-[#1e293b] pt-2 flex justify-between">
@@ -308,10 +308,10 @@ export const DrugCatalogScreen: React.FC<DrugCatalogScreenProps> = ({
                         <td className="py-2.5 px-3">
                           <div className="font-mono text-[11px]">
                             <span className="line-through text-[#64748b] mr-1">
-                              ${drug.brandPrice.toFixed(2)}
+                              ₹{drug.brandPrice.toFixed(2)}
                             </span>
                             <span className="font-bold text-emerald-400">
-                              ${drug.genericPriceAvg.toFixed(2)}
+                              ₹{drug.genericPriceAvg.toFixed(2)}
                             </span>
                           </div>
                           <span className="text-[10px] font-mono text-cyan-300 font-bold">
@@ -494,7 +494,7 @@ export const DrugCatalogScreen: React.FC<DrugCatalogScreenProps> = ({
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-emerald-400">${offer.price.toFixed(2)}</span>
+                      <span className="font-mono font-bold text-emerald-400">₹{offer.price.toFixed(2)}</span>
                       <span className="text-[10px] font-mono text-cyan-300 bg-cyan-950/60 px-1 py-0.2 rounded border border-cyan-800/40">
                         {offer.savingsRate}% OFF
                       </span>

@@ -217,7 +217,7 @@ export function App() {
       activeNodes: '24/24 Online',
       uptimeSla: '99.98%',
       metrics: {
-        totalReferralGMV: '$482,910',
+        totalReferralGMV: '₹482,910',
         substitutionsDriven: '128,450 Rx',
         searchLatencyP95: '186ms',
         partnerPharmacies: 142,
@@ -636,7 +636,7 @@ export function App() {
                 onExportPartnerReport={handleExportTelemetry}
                 onAuditPartnerPayout={(partnerId) => {
                   const p = partners.find((item) => item.id === partnerId);
-                  addToast('success', 'Stripe Escrow Verified', `Attribution verified for ${p?.name || 'Partner'}: $${p?.cpaAccrued.toFixed(2)}.`);
+                  addToast('success', 'Stripe Escrow Verified', `Attribution verified for ${p?.name || 'Partner'}: ₹${p?.cpaAccrued.toFixed(2)}.`);
                 }}
               />
             )}

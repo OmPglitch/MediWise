@@ -12,7 +12,7 @@ import {
   ChevronUp,
   Sparkles,
   Store,
-  DollarSign,
+  IndianRupee,
   TrendingDown,
   Info,
   Clock,
@@ -275,10 +275,10 @@ export const PatientPortalScreen: React.FC<PatientPortalScreenProps> = ({
             <span className="text-xs text-[#94a3b8]">Branded Retail Cost:</span>
             <div className="text-right">
               <span className="text-2xl font-bold text-white font-mono">
-                ${selectedDrug.brandPrice.toFixed(2)}
+                ₹{selectedDrug.brandPrice.toFixed(2)}
               </span>
               <span className="text-[10px] text-[#64748b] block font-mono">
-                (${ (selectedDrug.brandPrice / 30).toFixed(2) } / tablet)
+                (₹{ (selectedDrug.brandPrice / 30).toFixed(2) } / tablet)
               </span>
             </div>
           </div>
@@ -298,10 +298,10 @@ export const PatientPortalScreen: React.FC<PatientPortalScreenProps> = ({
 
           <div className="my-auto py-2">
             <div className="text-3xl lg:text-4xl font-extrabold text-emerald-400 font-mono">
-              Save ${selectedDrug.savingsAmount.toFixed(2)}
+              Save ₹{selectedDrug.savingsAmount.toFixed(2)}
             </div>
             <p className="text-xs text-[#94a3b8] mt-1">
-              Projected Annualized Savings: <strong className="text-white font-mono">${(selectedDrug.savingsAmount * 12).toFixed(2)} / year</strong>
+              Projected Annualized Savings: <strong className="text-white font-mono">₹{(selectedDrug.savingsAmount * 12).toFixed(2)} / year</strong>
             </p>
           </div>
 
@@ -336,10 +336,10 @@ export const PatientPortalScreen: React.FC<PatientPortalScreenProps> = ({
 
           <div className="text-right">
             <span className="text-2xl font-extrabold text-emerald-400 font-mono">
-              ${selectedDrug.genericPriceAvg.toFixed(2)}
+              ₹{selectedDrug.genericPriceAvg.toFixed(2)}
             </span>
             <span className="text-[10px] text-[#64748b] block font-mono">
-              30 Day Refill (${ (selectedDrug.genericPriceAvg / 30).toFixed(2) } / day)
+              30 Day Refill (₹{ (selectedDrug.genericPriceAvg / 30).toFixed(2) } / day)
             </span>
           </div>
         </div>
@@ -365,7 +365,7 @@ export const PatientPortalScreen: React.FC<PatientPortalScreenProps> = ({
                   <div className="flex justify-between items-start">
                     <span className="font-semibold text-white text-xs">{offer.partnerName}</span>
                     <span className="font-mono font-bold text-emerald-400 text-sm">
-                      ${offer.price.toFixed(2)}
+                      ₹{offer.price.toFixed(2)}
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5 mt-1">

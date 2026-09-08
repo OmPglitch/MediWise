@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   Store,
-  DollarSign,
+  IndianRupee,
   TrendingUp,
   Clock,
   RefreshCw,
@@ -148,17 +148,17 @@ export const PartnerNetworkScreen: React.FC<PartnerNetworkScreenProps> = ({
           </span>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl lg:text-3xl font-bold text-white font-['Hanken_Grotesk']">
-              $42,180.50
+              ₹42,180.50
             </span>
           </div>
           <div className="mt-1 flex items-center gap-1.5">
             <span className="font-mono text-[10px] text-purple-300 font-bold bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-800/40">
-              +9.1% MoM ($38,400 disbursed)
+              +9.1% MoM (₹38,400 disbursed)
             </span>
           </div>
           <div className="mt-3 text-xs text-[#94a3b8] border-t border-[#1e293b] pt-2 flex justify-between">
             <span>Escrow Retention Hold:</span>
-            <span className="font-mono font-bold text-cyan-300">$3,780.50 (7-day window)</span>
+            <span className="font-mono font-bold text-cyan-300">₹3,780.50 (7-day window)</span>
           </div>
         </div>
 
@@ -226,7 +226,7 @@ export const PartnerNetworkScreen: React.FC<PartnerNetworkScreenProps> = ({
             <div className="p-3 bg-[#090d16] rounded border border-[#1e293b]">
               <div className="flex justify-between items-start">
                 <span className="text-[10px] font-mono font-bold text-[#94a3b8] bg-[#1e293b] px-1.5 py-0.2 rounded border border-[#334155]">
-                  TIER 3 ($0.25 FIXED)
+                  TIER 3 (₹20 FIXED)
                 </span>
               </div>
               <div className="text-sm font-bold text-white mt-1.5">Local Chemists</div>
@@ -431,11 +431,11 @@ export const PartnerNetworkScreen: React.FC<PartnerNetworkScreenProps> = ({
 
                   <td className="py-2.5 px-3 font-mono">
                     <div className="text-cyan-300 font-bold">{partner.cvrPercent}% CVR</div>
-                    <div className="text-[10px] text-[#94a3b8]">${partner.gmvAmount.toLocaleString()} GMV</div>
+                    <div className="text-[10px] text-[#94a3b8]">₹{partner.gmvAmount.toLocaleString()} GMV</div>
                   </td>
 
                   <td className="py-2.5 px-3 font-mono">
-                    <div className="font-bold text-emerald-400">${partner.cpaAccrued.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+                    <div className="font-bold text-emerald-400">₹{partner.cpaAccrued.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
                     <div className="text-[10px] text-cyan-400/90">{partner.cpaTier}</div>
                   </td>
 
@@ -462,7 +462,7 @@ export const PartnerNetworkScreen: React.FC<PartnerNetworkScreenProps> = ({
         {/* Table Footer */}
         <div className="flex justify-between items-center text-xs font-mono text-[#94a3b8] pt-1">
           <span>Displaying {filteredPartners.length} of 142 integrated partner organizations</span>
-          <span className="text-cyan-400">Total CPA Pool Accrued: $42,180.50</span>
+          <span className="text-cyan-400">Total CPA Pool Accrued: ₹42,180.50</span>
         </div>
       </div>
     </div>

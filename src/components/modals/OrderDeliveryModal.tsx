@@ -215,7 +215,7 @@ export const OrderDeliveryModal: React.FC<OrderDeliveryModalProps> = ({
               </p>
               <div className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>You save ${(drug.brandPrice - unitPrice).toFixed(2)} ({drug.savingsPercent}%) vs branded retail</span>
+                <span>You save ₹{(drug.brandPrice - unitPrice).toFixed(2)} ({drug.savingsPercent}%) vs branded retail</span>
               </div>
             </div>
 
@@ -223,10 +223,10 @@ export const OrderDeliveryModal: React.FC<OrderDeliveryModalProps> = ({
             <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 pt-2 sm:pt-0 border-[#1e293b]">
               <div className="text-right">
                 <span className="text-xl font-extrabold text-emerald-400 font-mono">
-                  ${subtotal.toFixed(2)}
+                  ₹{subtotal.toFixed(2)}
                 </span>
                 <span className="text-[10px] text-[#64748b] block line-through font-mono">
-                  ${originalBrandedTotal.toFixed(2)}
+                  ₹{originalBrandedTotal.toFixed(2)}
                 </span>
               </div>
               <div className="flex items-center gap-1.5 mt-1">
@@ -475,7 +475,7 @@ export const OrderDeliveryModal: React.FC<OrderDeliveryModalProps> = ({
                   }`}
                 >
                   <div className="text-xs font-bold text-white truncate">{offer.partnerName}</div>
-                  <div className="text-xs font-mono font-bold text-emerald-400 mt-0.5">${offer.price.toFixed(2)}</div>
+                  <div className="text-xs font-mono font-bold text-emerald-400 mt-0.5">₹{offer.price.toFixed(2)}</div>
                   <div className="text-[10px] text-[#94a3b8]">{offer.delivery}</div>
                 </div>
               ))}
@@ -499,10 +499,10 @@ export const OrderDeliveryModal: React.FC<OrderDeliveryModalProps> = ({
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-extrabold text-white font-mono">
-                ${subtotal.toFixed(2)}
+                ₹{subtotal.toFixed(2)}
               </span>
               <span className="text-xs font-mono text-emerald-400 font-bold">
-                (Saved ${totalSavings.toFixed(2)})
+                (Saved ₹{totalSavings.toFixed(2)})
               </span>
             </div>
           </div>

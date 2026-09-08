@@ -58,7 +58,7 @@ export interface PartnerPharmacy {
   totalSharePercent: number;
   cvrPercent: number;
   gmvAmount: number;
-  cpaTier: 'Tier 1 (8.5%)' | 'Tier 2 (7.0%)' | 'Tier 3 ($0.25)';
+  cpaTier: 'Tier 1 (8.5%)' | 'Tier 2 (7.0%)' | 'Tier 3 (₹20)' | 'Tier 3 ($0.25)';
   cpaAccrued: number;
   complianceBadge: string;
   hasWarning?: boolean;
