@@ -21,12 +21,12 @@ export function useWebSocket(
   const connect = useCallback(() => {
     if (!isMounted.current) return;
 
-    // Use current host, connecting to port 3001 or window origin
+    // In dev: Vite proxies /ws → Express server (port 5000).
+    // Use the same origin as the Vite dev server (port 3000) so the proxy works.
+    // In production: connect directly to the same host/port serving the app.
     const isSecure = window.location.protocol === 'https:';
-    const wsProto = isSecure ? 'wss:' : 'ws:';
-    // If running in dev server, connect to backend at 3001
-    const port = window.location.port === '3000' ? '3001' : window.location.port || '3001';
-    const wsUrl = `${wsProto}//${window.location.hostname}:${port}/ws`;
+    const wsProto  = isSecure ? 'wss:' : 'ws:';
+    const wsUrl    = `${wsProto}//${window.location.host}/ws`;
 
     try {
       setConnectionState((prev) => (prev === 'disconnected' ? 'reconnecting' : prev));
