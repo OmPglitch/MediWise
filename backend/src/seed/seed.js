@@ -4,8 +4,8 @@
  * MediWise MongoDB Seed Script
  * Populates all collections with realistic demo data matching src/data/mock*.ts
  *
- * Usage:  node seed/seed.js
- *         (from the server/ directory, after running npm install and creating .env)
+ * Usage:  npm run seed          (from the backend/ directory)
+ *          node src/seed/seed.js  (from the backend/ directory)
  */
 
 const path = require('path');
@@ -14,9 +14,9 @@ require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 const mongoose      = require('mongoose');
 const { connectDB } = require('../config/db');
 
-const Drug         = require('../../../server/models/Drug');
-const Partner      = require('../../../server/models/Partner');
-const Delivery     = require('../../../server/models/Delivery');
+const Drug         = require('../models/Drug');
+const Partner      = require('../models/Partner');
+const Delivery     = require('../models/Delivery');
 const AuditEvent   = require('../models/AuditEvent');
 const User         = require('../models/User');
 const EscrowPayout = require('../models/EscrowPayout');

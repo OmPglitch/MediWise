@@ -1,8 +1,37 @@
+# ── Dependencies ─────────────────────────────────────────────────
 node_modules/
-build/
+frontend/node_modules/
+backend/node_modules/
+server/node_modules/
+
+# ── Build outputs ─────────────────────────────────────────────────
 dist/
+build/
+frontend/dist/
+frontend/build/
+
+# ── Test artifacts ────────────────────────────────────────────────
 coverage/
-.DS_Store
-*.log
-.env*
+frontend/playwright-report/
+frontend/playwright-results.json
+frontend/test-results/
+
+# ── Environment files (never commit real secrets) ─────────────────
+.env
+.env.local
+.env.production
+frontend/.env
+backend/.env
+# Allow example templates
 !.env.example
+!frontend/.env.example
+!backend/.env.example
+!server/.env.example
+
+# ── OS / Editor artifacts ─────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.log
+*.log.*
+*.pem
+.vscode/settings.json
