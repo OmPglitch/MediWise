@@ -7,8 +7,9 @@
  */
 
 const path = require('path');
-// Load .env — works on all Node versions via dotenv package
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+// Load .env for local development — on Render/production, env vars come from the dashboard
+// { override: false } ensures Render's dashboard vars are never overwritten by the file
+require('dotenv').config({ path: path.join(__dirname, '..', '.env'), override: false });
 
 const http    = require('http');
 const express = require('express');
