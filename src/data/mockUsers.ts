@@ -1,4 +1,4 @@
-import { UserProfile, UserRole } from '../types';
+import { UserProfile, UserRole, ActiveTab } from '../types';
 
 export const DEMO_USERS: Record<UserRole, UserProfile> = {
   cmio: {
@@ -108,7 +108,7 @@ export const ROLE_DETAILS: Record<UserRole, {
   label: string;
   badgeColor: string;
   tagline: string;
-  recommendedView: 'overview' | 'catalog' | 'partners' | 'compliance' | 'patient';
+  recommendedView: ActiveTab;
 }> = {
   cmio: {
     label: 'Chief Medical Systems Officer',

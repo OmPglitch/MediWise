@@ -19,6 +19,14 @@ import { DeliveryManagementScreen } from './components/screens/DeliveryManagemen
 import { OrderDeliveryModal } from './components/modals/OrderDeliveryModal';
 import { DeliveryTrackingModal } from './components/modals/DeliveryTrackingModal';
 import { NotificationToast, ToastMessage } from './components/NotificationToast';
+// Phase 3 screens
+import { FHIRIngestionScreen } from './components/screens/FHIRIngestionScreen';
+import { IndiaStackScreen } from './components/screens/IndiaStackScreen';
+// Phase 4 screen
+import { CommerceScreen } from './components/screens/CommerceScreen';
+// Phase 5 screens
+import { FederatedCatalogScreen } from './components/screens/FederatedCatalogScreen';
+import { FleetTelemetryScreen } from './components/screens/FleetTelemetryScreen';
 import {
   INITIAL_DRUGS,
   INITIAL_PARTNERS,
@@ -147,6 +155,51 @@ export function App() {
     error: null,
     uploadedImageUrl: null,
   });
+
+  const handleScanPrescription = async (file: File) => {
+    setRxScanState({ isScanning: true, result: null, error: null, uploadedImageUrl: URL.createObjectURL(file) });
+    try {
+      const reader = new FileReader();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve((reader.result as string).split(',')[1] ?? '');
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const response = await fetch('/api/rx/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64, mimeType: file.type || 'image/jpeg' }),
+      });
+
+      if (!response.ok) {
+        const errBody = await response.json().catch(() => ({ error: 'Server error' }));
+        throw new Error(errBody.error || `HTTP ${response.status}`);
+      }
+
+      const result: RxScanResult = await response.json();
+      // Cross-reference against formulary
+      const matched = drugs.find(
+        (d) =>
+          d.brandName.toLowerCase().includes(result.drugName.toLowerCase()) ||
+          d.activeSalt.toLowerCase().includes(result.drugName.toLowerCase())
+      );
+      if (matched && !result.matchedDrugId) {
+        result.matchedDrugId = matched.id;
+        result.matchedDrugName = `${matched.activeSalt} (${matched.strength}) — Generic of ${matched.brandName}`;
+      }
+      setRxScanState({ isScanning: false, result, error: null, uploadedImageUrl: URL.createObjectURL(file) });
+      addToast('success', 'Prescription Scanned', `Extracted: ${result.drugName} (${(result.confidence * 100).toFixed(0)}% confidence)`);
+    } catch (err: any) {
+      const errMsg = err?.message || 'Failed to analyze prescription. Please try again.';
+      setRxScanState({ isScanning: false, result: null, error: errMsg, uploadedImageUrl: null });
+      addToast('error', 'Scan Failed', errMsg);
+    }
+  };
+
+  const handleResetScan = () => {
+    setRxScanState({ isScanning: false, result: null, error: null, uploadedImageUrl: null });
+  };
 
   // Sprint 2.3 — WebSocket Gateway Integration
   const handleWebSocketMessage = React.useCallback((msg: WebSocketMessage) => {
@@ -399,7 +452,17 @@ export function App() {
     }, 1500);
   };
 
-  const handleEmergencyOverride = (reason: string) => {
+  const handleClearLocalData = async () => {
+    try {
+      await clearAllLocalData();
+      setDeliveries(MOCK_DELIVERIES);
+      setDrugs(INITIAL_DRUGS);
+      setAuditEvents(INITIAL_AUDIT_EVENTS);
+      addToast('success', 'Local Data Cleared', 'IndexedDB stores purged and reset to factory defaults.');
+    } catch (err) {
+      addToast('error', 'Clear Failed', 'Could not clear local data. Please try again.');
+    }
+  };
     const overrideAudit: AuditEvent = {
       id: `audit-${Date.now()}`,
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 23),
@@ -668,6 +731,9 @@ export function App() {
             currentUser={currentUser}
             theme={theme}
             onToggleTheme={handleToggleTheme}
+            rxScanState={rxScanState}
+            onScanPrescription={handleScanPrescription}
+            onResetScan={handleResetScan}
           />
         </main>
       ) : (
@@ -764,6 +830,41 @@ export function App() {
                 pingingId={pingingId}
                 theme={theme}
                 onSelectTheme={handleSelectTheme}
+                onClearLocalData={handleClearLocalData}
+              />
+            )}
+
+            {/* ── Phase 3: Healthcare Ecosystem Integrations ── */}
+            {activeTab === 'fhir' && (
+              <FHIRIngestionScreen
+                onAddAuditEvent={(event) => setAuditEvents((prev) => [event, ...prev])}
+                onNavigateToCatalog={(drugId) => {
+                  setSelectedDrugId(drugId);
+                  setActiveTab('catalog');
+                }}
+              />
+            )}
+
+            {activeTab === 'indiastack' && (
+              <IndiaStackScreen currentUserName={currentUser?.name} />
+            )}
+
+            {/* ── Phase 4: Commerce & Financial Settlement ── */}
+            {activeTab === 'commerce' && (
+              <CommerceScreen
+                onAddAuditEvent={(event) => setAuditEvents((prev) => [event, ...prev])}
+                currentUserRole={currentUser?.role}
+              />
+            )}
+
+            {/* ── Phase 5: Scale, Reliability & Global Expansion ── */}
+            {activeTab === 'federated' && (
+              <FederatedCatalogScreen />
+            )}
+
+            {activeTab === 'fleet' && (
+              <FleetTelemetryScreen
+                onAddAuditEvent={(event) => setAuditEvents((prev) => [event, ...prev])}
               />
             )}
           </main>

@@ -99,11 +99,11 @@ This document preserves the comprehensive architecture, domain knowledge, comple
 
 | Feature | Priority | Complexity | Target Area |
 | :--- | :--- | :--- | :--- |
-| **Real-time WebSocket Gateway** | High | Medium | `src/data/` & Express backend |
-| **Interactive Rx AI Scanner (Gemini Vision)** | High | High | `src/components/screens/PatientPortalScreen.tsx` |
-| **PDF Prescription & Clinical Slip Export** | Medium | Low | `src/components/modals/DoctorSlipModal.tsx` |
-| **Live Courier Geolocation Map (Leaflet / Mapbox)** | Medium | Medium | `src/components/modals/DeliveryTrackingModal.tsx` |
-| **Stripe Connect Automated Escrow Payouts** | Low | High | External Service Gateway |
+| **Playwright E2E Tests in CI (GitHub Actions)** | Medium | Low | `e2e/` + `.github/workflows/` |
+| **BLE Hardware SDK (Real Fleet Vans)** | Medium | High | `server.ts` + `FleetTelemetryScreen.tsx` |
+| **Stripe Connect Live Credentials + Webhook Sig** | Medium | Medium | `server.ts` `/api/stripe/webhook` |
+| **MongoDB Server-Side Persistence** | Low | High | `server.ts` + new `src/lib/serverDb.ts` |
+| **Live Courier Geolocation (Mapbox GL / Leaflet)** | Low | Medium | `DeliveryTrackingModal.tsx` |
 
 ---
 
@@ -238,16 +238,22 @@ erDiagram
 
 ## 9. Future Roadmap
 
-### Phase 1: Near-Term (Sprint Q4 2026)
-- [ ] Connect Gemini 2.5 Flash multimodal vision API for prescription handwriting OCR.
-- [ ] Implement client-side PDF rendering for official doctor substitution slips.
-- [ ] Persist mock mutations into an IndexedDB / SQLite browser database.
+### Phase 1: Near-Term (Sprint Q4 2026) ✅ COMPLETE
+- [x] Connect Gemini 2.5 Flash multimodal vision API for prescription handwriting OCR.
+- [x] Implement client-side PDF rendering for official doctor substitution slips.
+- [x] Persist mock mutations into an IndexedDB browser database.
+- [x] Real-time WebSocket Gateway (Express + `ws`, live cold-chain, partner sync, event bus).
 
-### Phase 2: Medium-Term (Sprint Q1 2027)
-- [ ] Direct FHIR v4.0 / HL7 webhook ingestion from hospital Electronic Health Record (EHR) systems.
-- [ ] Integration with India Stack: Ayushman Bharat Digital Mission (ABDM) and Unified Health Interface (UHI).
-- [ ] Live BLE beacon telemetry for refrigerated pharmacy van fleet tracking.
+### Phase 2: Medium-Term (Sprint Q1 2027) — Partially Implemented
+- [x] FHIR R4 / HL7 EHR webhook ingestion UI (`FHIRIngestionScreen.tsx`, `POST /api/fhir/ingest`).
+- [x] India Stack: ABHA verification, UHI service discovery, Digital Health Locker consent.
+- [x] Stripe Escrow payouts + GST invoicing + multi-currency (`CommerceScreen.tsx`).
+- [ ] Live BLE hardware SDK integration for refrigerated pharmacy van fleet.
+- [ ] Integration with ABDM sandbox credentials (live government API keys).
 
 ### Phase 3: Long-Term (Sprint Q2 2027)
-- [ ] Automated smart-contract escrow settlement on Stripe Connect with GST tax invoice generation.
-- [ ] Multi-region federated catalog synchronizing CDSCO, FDA Orange Book, and EMA generic registrations.
+- [x] Multi-region federated catalog: CDSCO, FDA Orange Book, EMA (`FederatedCatalogScreen.tsx`).
+- [x] BLE Fleet Telemetry dashboard with ML breach predictor (`FleetTelemetryScreen.tsx`).
+- [x] Playwright E2E test suite (5 spec files, 4 browser targets).
+- [ ] GitHub Actions CI pipeline running full Playwright suite on pull requests.
+- [ ] MongoDB server-side persistence layer replacing IndexedDB for multi-user sync.

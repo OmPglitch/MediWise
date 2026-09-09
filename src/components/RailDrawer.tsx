@@ -13,7 +13,15 @@ import {
   User,
   Lock,
   ChevronRight,
-  Truck
+  Truck,
+  // Phase 3
+  Dna,
+  Shield,
+  // Phase 4
+  CreditCard,
+  // Phase 5
+  Globe,
+  Bluetooth,
 } from 'lucide-react';
 import { ActiveTab, UserProfile } from '../types';
 import { ROLE_DETAILS } from '../data/mockUsers';
@@ -65,7 +73,7 @@ export const RailDrawer: React.FC<RailDrawerProps> = ({
         </div>
 
         {/* Navigation Tabs */}
-        <nav className="flex flex-col gap-1">
+        <nav className="flex flex-col gap-1 overflow-y-auto max-h-[calc(100vh-220px)] pr-0.5 scrollbar-thin">
           {/* 1: Overview & Analytics */}
           <button
             onClick={() => setActiveTab('overview')}
@@ -160,6 +168,94 @@ export const RailDrawer: React.FC<RailDrawerProps> = ({
           >
             <Settings className={`w-4 h-4 ${activeTab === 'settings' ? 'text-cyan-400' : 'text-[#64748b]'}`} />
             <span>System Settings</span>
+          </button>
+
+          {/* ── Phase 3 Section ── */}
+          <div className="pt-2 pb-0.5 px-3">
+            <span className="text-[9px] font-mono font-bold uppercase text-[#475569] tracking-widest">
+              Phase 3 · Integrations
+            </span>
+          </div>
+
+          <button
+            onClick={() => setActiveTab('fhir')}
+            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded text-xs font-medium transition-all text-left ${
+              activeTab === 'fhir'
+                ? 'bg-gradient-to-r from-violet-950/80 to-[#1e293b]/60 text-violet-300 border-l-4 border-violet-400 font-semibold shadow-sm'
+                : 'text-[#94a3b8] hover:text-white hover:bg-[#1e293b]/40'
+            }`}
+          >
+            <Activity className={`w-4 h-4 ${activeTab === 'fhir' ? 'text-violet-400' : 'text-[#64748b]'}`} />
+            <span className="flex-1">FHIR / HL7 EHR Gateway</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('indiastack')}
+            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded text-xs font-medium transition-all text-left ${
+              activeTab === 'indiastack'
+                ? 'bg-gradient-to-r from-orange-950/80 to-[#1e293b]/60 text-orange-300 border-l-4 border-orange-400 font-semibold shadow-sm'
+                : 'text-[#94a3b8] hover:text-white hover:bg-[#1e293b]/40'
+            }`}
+          >
+            <Shield className={`w-4 h-4 ${activeTab === 'indiastack' ? 'text-orange-400' : 'text-[#64748b]'}`} />
+            <span className="flex-1">India Stack (ABDM / UHI)</span>
+          </button>
+
+          {/* ── Phase 4 Section ── */}
+          <div className="pt-2 pb-0.5 px-3">
+            <span className="text-[9px] font-mono font-bold uppercase text-[#475569] tracking-widest">
+              Phase 4 · Commerce
+            </span>
+          </div>
+
+          <button
+            onClick={() => setActiveTab('commerce')}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded text-xs font-medium transition-all text-left ${
+              activeTab === 'commerce'
+                ? 'bg-gradient-to-r from-emerald-950/80 to-[#1e293b]/60 text-emerald-300 border-l-4 border-emerald-400 font-semibold shadow-sm'
+                : 'text-[#94a3b8] hover:text-white hover:bg-[#1e293b]/40'
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <CreditCard className={`w-4 h-4 ${activeTab === 'commerce' ? 'text-emerald-400' : 'text-[#64748b]'}`} />
+              <span>Escrow, GST & Currency</span>
+            </div>
+          </button>
+
+          {/* ── Phase 5 Section ── */}
+          <div className="pt-2 pb-0.5 px-3">
+            <span className="text-[9px] font-mono font-bold uppercase text-[#475569] tracking-widest">
+              Phase 5 · Scale
+            </span>
+          </div>
+
+          <button
+            onClick={() => setActiveTab('federated')}
+            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded text-xs font-medium transition-all text-left ${
+              activeTab === 'federated'
+                ? 'bg-gradient-to-r from-blue-950/80 to-[#1e293b]/60 text-blue-300 border-l-4 border-blue-400 font-semibold shadow-sm'
+                : 'text-[#94a3b8] hover:text-white hover:bg-[#1e293b]/40'
+            }`}
+          >
+            <Globe className={`w-4 h-4 ${activeTab === 'federated' ? 'text-blue-400' : 'text-[#64748b]'}`} />
+            <span className="flex-1">Federated Catalog</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('fleet')}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded text-xs font-medium transition-all text-left ${
+              activeTab === 'fleet'
+                ? 'bg-gradient-to-r from-cyan-950/80 to-[#1e293b]/60 text-cyan-300 border-l-4 border-cyan-400 font-semibold shadow-sm'
+                : 'text-[#94a3b8] hover:text-white hover:bg-[#1e293b]/40'
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <Bluetooth className={`w-4 h-4 ${activeTab === 'fleet' ? 'text-cyan-400' : 'text-[#64748b]'}`} />
+              <span>BLE Fleet Telemetry</span>
+            </div>
+            <span className="px-1.5 py-0.5 text-[9px] font-mono font-bold bg-cyan-950 text-cyan-300 border border-cyan-800 rounded">
+              Live
+            </span>
           </button>
         </nav>
 

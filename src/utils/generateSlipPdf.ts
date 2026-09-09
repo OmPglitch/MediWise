@@ -89,7 +89,7 @@ export function generateSlipPdf({ drug, patientName, physicianName }: GenerateSl
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.text(`NDC: ${drug.brandNdc}`, 20, y + 15);
-  doc.text(`Original Price: ₹${drug.brandPriceInr.toFixed(2)}`, 20, y + 22);
+  doc.text(`Original Price: ₹${drug.brandPrice.toFixed(2)}`, 20, y + 22);
 
   // Generic Info
   const col2X = 15 + (pageWidth - 30) / 2 + 5;
@@ -104,7 +104,7 @@ export function generateSlipPdf({ drug, patientName, physicianName }: GenerateSl
   doc.text(`ATC Code: ${drug.atcCode}  |  Form: ${drug.dosageForm}`, col2X, y + 15);
   doc.setTextColor(16, 185, 129); // green
   doc.setFont('helvetica', 'bold');
-  doc.text(`Generic Price: ₹${drug.genericPriceInr.toFixed(2)} (Save ${drug.savingsPercent}%)`, col2X, y + 22);
+  doc.text(`Generic Price: ₹${drug.genericPriceAvg.toFixed(2)} (Save ${drug.savingsPercent}%)`, col2X, y + 22);
 
   // Pharmacokinetic Bioequivalence Parity Section
   y += 38;

@@ -229,10 +229,66 @@ export const DeliveryTrackingModal: React.FC<DeliveryTrackingModalProps> = ({
                     {order.courier.stopsAway} STOPS REMAINING
                   </span>
                 </div>
-                <p className="text-[11px] text-[#cbd5e1]">
+
+                {/* SVG Geolocation Map */}
+                <div className="relative rounded overflow-hidden border border-[#1e293b] bg-[#090d16]" style={{ height: '180px' }}>
+                  <svg width="100%" height="180" viewBox="0 0 560 180" xmlns="http://www.w3.org/2000/svg">
+                    {/* Map background grid */}
+                    <rect width="560" height="180" fill="#060a14" />
+                    {/* Grid lines */}
+                    {[30,60,90,120,150].map(y => <line key={y} x1="0" y1={y} x2="560" y2={y} stroke="#1e293b" strokeWidth="0.5" />)}
+                    {[70,140,210,280,350,420,490].map(x => <line key={x} x1={x} y1="0" x2={x} y2="180" stroke="#1e293b" strokeWidth="0.5" />)}
+
+                    {/* Road polyline (delivery route) */}
+                    <polyline points="40,140 120,130 200,110 280,95 360,80 440,68 520,60"
+                      fill="none" stroke="#1e4a6e" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+                    <polyline points="40,140 120,130 200,110 280,95 360,80 440,68 520,60"
+                      fill="none" stroke="#0284c7" strokeWidth="2.5" strokeDasharray="6 4" strokeLinecap="round" strokeLinejoin="round" />
+
+                    {/* Completed route overlay */}
+                    <polyline points="40,140 120,130 200,110 280,95 360,80"
+                      fill="none" stroke="#10b981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+
+                    {/* Waypoint stops */}
+                    {[{x:40,y:140,label:'Pharmacy'},{x:200,y:110,label:'Hub'},{x:360,y:80,label:'Check'},{x:520,y:60,label:'Dest'}].map((wp, i) => (
+                      <g key={i}>
+                        <circle cx={wp.x} cy={wp.y} r="5" fill={i < 3 ? '#10b981' : '#1e293b'} stroke={i < 3 ? '#34d399' : '#475569'} strokeWidth="1.5" />
+                        <text x={wp.x} y={wp.y + 16} textAnchor="middle" fontSize="8" fill="#64748b">{wp.label}</text>
+                      </g>
+                    ))}
+
+                    {/* Courier vehicle pin (animated) */}
+                    <g>
+                      <circle cx="360" cy="80" r="12" fill="#0c4a6e" stroke="#38bdf8" strokeWidth="2">
+                        <animate attributeName="r" values="12;15;12" dur="1.5s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" values="0.6;1;0.6" dur="1.5s" repeatCount="indefinite" />
+                      </circle>
+                      <circle cx="360" cy="80" r="5" fill="#38bdf8" />
+                      {/* Heading arrow */}
+                      <polygon points="360,67 364,75 356,75" fill="#38bdf8" />
+                    </g>
+
+                    {/* Destination pin */}
+                    <g>
+                      <circle cx="520" cy="60" r="8" fill="#0f172a" stroke="#f59e0b" strokeWidth="2" />
+                      <circle cx="520" cy="60" r="3" fill="#f59e0b" />
+                      <line x1="520" y1="52" x2="520" y2="40" stroke="#f59e0b" strokeWidth="1.5" />
+                      <rect x="520" y="32" width="26" height="10" rx="2" fill="#78350f" />
+                      <text x="533" y="40" textAnchor="middle" fontSize="7" fill="#fbbf24" fontWeight="bold">DEST</text>
+                    </g>
+
+                    {/* ETA badge */}
+                    <rect x="8" y="8" width="90" height="22" rx="4" fill="#0c2d50" stroke="#0284c7" strokeWidth="1" />
+                    <text x="14" y="17" fontSize="7" fill="#94a3b8">ETA</text>
+                    <text x="14" y="26" fontSize="9" fill="#38bdf8" fontWeight="bold">{order.expectedDeliveryTimeWindow}</text>
+                  </svg>
+                  <div className="absolute bottom-2 right-2 text-[9px] font-mono text-cyan-500/70">Phase 3 · Courier Geolocation</div>
+                </div>
+
+                <p className="text-[11px] text-[#cbd5e1] mt-2">
                   Current Location: <strong className="text-white">{order.courier.currentLocationName}</strong>
                 </p>
-                <div className="mt-2 h-2 bg-[#1e293b] rounded-full overflow-hidden">
+                <div className="mt-1.5 h-2 bg-[#1e293b] rounded-full overflow-hidden">
                   <div className="bg-cyan-400 h-full rounded-full animate-pulse" style={{ width: '82%' }}></div>
                 </div>
               </div>

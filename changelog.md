@@ -9,9 +9,103 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 ### Planned
-- Gemini 2.5 Flash Vision integration for handwritten prescription recognition and Schedule H drug checks.
-- Direct PDF download generator for clinician-signed substitution slips.
-- IndexedDB client storage layer for persistent local state across browser refreshes.
+- Playwright E2E browser tests running in CI via GitHub Actions (Sprint 5.3 follow-up).
+- BLE hardware SDK integration for real refrigerated van fleet (Sprint 5.2 hardware layer).
+- Stripe Connect live credentials and webhook signature verification (Sprint 4.1 production gate).
+
+---
+
+## [2.0.0] - 2026-09-09
+
+### Added — Phase 5: Scale, Reliability & Global Expansion
+
+- **Multi-Region Federated Drug Catalog** (`FederatedCatalogScreen.tsx`):
+  - Unified formulary spanning CDSCO (India), FDA Orange Book (USA), and EMA (EU) regulatory registrations.
+  - Per-drug regulatory approval cards with jurisdiction flags, application numbers, registered moieties, and validity dates.
+  - Cross-region price harmonization panel (INR / USD / EUR per tablet).
+  - Aggregated bioequivalence study counts and harmonized parity scores.
+  - Filter by therapeutic category and jurisdiction approval status.
+  - Mock data: `src/data/mockPhase5Data.ts` — 5 federated drug entries.
+
+- **BLE Fleet Cold-Chain Telemetry** (`FleetTelemetryScreen.tsx`):
+  - Live BLE beacon simulation for 5 refrigerated pharmacy vans across Delhi, Mumbai, Bengaluru, Chennai, and Kolkata.
+  - Real-time chiller temperature gauge (SVG arc gauge), ambient vs. target range display.
+  - ML breach predictor with countdown timer when temperature trend predicts breach within 15–30 minutes.
+  - Live SVG sparkline temperature history with animated path rendering (5-second BLE tick).
+  - Fleet KPI strip: total vehicles, optimal, at-risk, idle counts.
+  - `FLEETVehicleSensor` type in `src/types.ts` (already declared in Phase 2 sprint).
+
+- **Automated E2E Test Infrastructure** (`playwright.config.ts`, `e2e/`):
+  - Playwright `^1.47.0` added to `devDependencies`.
+  - `playwright.config.ts`: multi-browser matrix (Chromium, Firefox, WebKit, Pixel 5 mobile), HTML/JSON reporters, dev server auto-start.
+  - `e2e/helpers.ts`: shared `loadApp`, `navigateToTab`, `waitForToast`, `assertNoAccessibilityErrors` utilities.
+  - `e2e/auth.spec.ts`: authentication, RBAC boundary, and theme toggle tests.
+  - `e2e/drug-catalog.spec.ts`: catalog load, bioequivalence metrics, order launch tests.
+  - `e2e/delivery.spec.ts`: delivery management and critical end-to-end journey (Patient Portal → Order → Track).
+  - `e2e/compliance.spec.ts`: audit ledger, verify integrity, emergency override tests.
+  - `e2e/theme.spec.ts`: dark/light mode parity and localStorage persistence tests.
+  - `npm run test:e2e`, `test:e2e:ui`, `test:e2e:report` scripts added to `package.json`.
+
+### Added — Phase 4: Commerce & Financial Settlement
+
+- **Commerce Screen** (`CommerceScreen.tsx`) — unified 3-tab financial workspace:
+  - **Stripe Escrow tab**: payout queue with `pending_fulfillment`, `in_escrow`, `dual_approval_required`, `disbursed` states. Dual CMIO + Compliance Officer authorization gate for payouts > ₹1,00,000. Stripe transfer ID generation on release. Audit event logged on every disbursement.
+  - **GST Invoicing tab**: invoice register with `draft` → `generated` (IRN hash) → `filed` lifecycle. CGST/SGST/IGST breakdown by intra/inter-state transaction. HSN code `30049099` for pharmaceutical dispensing. GSTN portal filing action.
+  - **Multi-Currency tab**: 5-currency selector (INR, USD, EUR, GBP, AED). Exchange rate table with Open Exchange Rates sourcing. Real-time commission conversion preview table.
+- `src/data/mockPhase4Data.ts`: 4 escrow payouts, 3 GST invoices, 5 currency rates.
+- `formatCurrency()` and `convertFromINR()` utility functions.
+- New types already declared in `src/types.ts`: `StripeEscrowPayout`, `GSTInvoice`, `SupportedCurrency`, `CurrencyRate`.
+
+### Added — Phase 3: Healthcare Ecosystem Integrations
+
+- **FHIR R4 / HL7 EHR Ingestion Screen** (`FHIRIngestionScreen.tsx`):
+  - FHIR R4 MedicationRequest bundle list with validate / reject workflow.
+  - KPI strip: total ingested, validated, pending, rejected counts.
+  - EHR endpoint registry panel (Apollo, Fortis, AIIMS, Max Healthcare).
+  - RxNorm / SNOMED CT coding display, formulary cross-reference link, audit event on validation.
+  - "Simulate EHR Push" adds a live demo MedicationRequest to the queue.
+  - 4 mock FHIR bundles in `src/data/mockPhase3Data.ts`.
+
+- **India Stack Integration Screen** (`IndiaStackScreen.tsx`):
+  - 3-tab workspace: ABHA Verification, UHI Discovery, Digital Health Locker.
+  - ABHA tab: 14-digit ABHA ID lookup, KYC status badge, linked record count, Pull/Link actions.
+  - UHI tab: pharmacy / diagnostic / teleconsult provider grid with distance, ETA, stock, rating.
+  - Locker tab: per-patient HIE consent toggle per document type (prescriptions, labs, discharge summaries, vaccinations).
+  - Mock data: 3 ABHA profiles, 6 UHI providers in `src/data/mockPhase3Data.ts`.
+
+- **Live Courier Geolocation Map** (`DeliveryTrackingModal.tsx`):
+  - SVG vector map rendered inline (no external dependency) with road polyline, completed route overlay, animated courier pin with heading indicator, destination flag pin, and ETA badge.
+  - Replaces plain text "current location" with a visual 180px map panel.
+  - `CourierCoordinates` mock data added to `src/data/mockPhase3Data.ts`.
+
+### Added — Phase 2: Intelligence & Real-Time Capabilities (completed)
+
+- **Gemini Rx Scanner fully wired** (`App.tsx`):
+  - `handleScanPrescription(file)`: reads file as base64, calls `POST /api/rx/scan`, cross-references result against formulary, updates `rxScanState`.
+  - `handleResetScan()`: clears scan state for re-upload.
+  - Props `rxScanState`, `onScanPrescription`, `onResetScan` passed to `PatientPortalScreen`.
+
+- **Settings clear local data wired** (`App.tsx`):
+  - `handleClearLocalData()`: calls `clearAllLocalData()`, resets React state to mock defaults, shows success toast.
+  - `onClearLocalData` prop passed to `SettingsScreen`.
+
+- **PDF Clinical Slip fix** (`generateSlipPdf.ts`):
+  - Fixed `brandPriceInr` → `brandPrice` and `genericPriceInr` → `genericPriceAvg` field references.
+
+### Changed
+
+- `src/types.ts`: `ActiveTab` union extended with `fhir`, `indiastack`, `commerce`, `federated`, `fleet`.
+- `src/data/mockUsers.ts`: `recommendedView` field type widened from narrow union to `ActiveTab` import. Added `ActiveTab` to imports.
+- `src/components/RailDrawer.tsx`:
+  - Navigation scrollable (`overflow-y-auto`, `max-h-[calc(100vh-220px)]`).
+  - Added Phase 3 section header + FHIR Gateway and India Stack buttons.
+  - Added Phase 4 section header + Escrow/GST/Currency button.
+  - Added Phase 5 section header + Federated Catalog and BLE Fleet Telemetry buttons with Live badge.
+  - Added `Activity`, `Shield`, `CreditCard`, `Globe`, `Bluetooth` lucide icon imports.
+- `src/App.tsx`:
+  - Imports: added all 5 new Phase 3–5 screen components.
+  - Render: added `activeTab === 'fhir'`, `indiastack`, `commerce`, `federated`, `fleet` branches in the ops viewport.
+- `package.json`: added `@playwright/test ^1.47.0` to devDependencies; added `test:e2e`, `test:e2e:ui`, `test:e2e:report` scripts.
 
 ---
 

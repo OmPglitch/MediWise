@@ -1,4 +1,19 @@
-export type ActiveTab = 'overview' | 'catalog' | 'partners' | 'compliance' | 'settings' | 'patient' | 'deliveries';
+export type ActiveTab =
+  | 'overview'
+  | 'catalog'
+  | 'partners'
+  | 'compliance'
+  | 'settings'
+  | 'patient'
+  | 'deliveries'
+  // Phase 3
+  | 'fhir'
+  | 'indiastack'
+  // Phase 4
+  | 'commerce'
+  // Phase 5
+  | 'federated'
+  | 'fleet';
 
 export type TenantScope = 'all' | 'regional' | 'ops';
 

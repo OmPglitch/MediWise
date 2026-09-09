@@ -230,3 +230,55 @@ Integrate the official Google Gen AI SDK (`@google/genai` v2.4.0) configured for
 
 ### Impact on Project
 - Safe, compliant AI integration ready for clinical reasoning, generic substitution explanations, and document parsing.
+
+---
+
+## ADR-008: Client-Side IndexedDB as Persistence Layer (No Server-Side Database)
+
+### Date
+2026-09-09
+
+### Context / Problem
+MediWise is a frontend-heavy clinical SPA. Delivery orders, audit events, and drug catalog edits created during a session need to survive browser refreshes. A full server-side database (PostgreSQL, MongoDB) would require infrastructure provisioning, auth middleware, and API endpoints that are outside the current phase scope.
+
+### Decision Taken
+Use **IndexedDB** via the `idb` npm wrapper as the sole persistence layer for the current phases. Three object stores: `deliveries`, `auditEvents`, `drugs`. Preferences use `localStorage`.
+
+### Reasoning
+- **Zero infrastructure overhead**: Runs entirely in the browser; no backend DB connection string, no migrations, no server provisioning.
+- **Adequate for SPA demo scope**: All data is user-session-local — the clinical data is mock/demo, so no multi-user sync is required.
+- **Typed schema via `idb`**: The `DBSchema` interface provides TypeScript-safe object store definitions matching the `DrugItem`, `DeliveryOrder`, and `AuditEvent` types exactly.
+- **Future upgrade path**: When server-side persistence is needed, `src/lib/db.ts` exports are the only touch-point — replacing them with REST/fetch calls to a Mongoose/MongoDB or PostgreSQL backend requires no changes to React components.
+
+### Alternatives Considered
+1. **MongoDB (Mongoose)**: Would require a running MongoDB server, Mongoose ODM, and full REST API layer in `server.ts`. Deferred to a future backend phase.
+2. **SQLite (better-sqlite3)**: Server-side SQLite would require the Express server to manage connections, blocking I/O concerns, and WAL configuration. Deferred.
+3. **Zustand + localStorage**: Evaluated for lightweight state persistence. Rejected because large array serialization to `localStorage` (5MB quota) is insufficient for audit ledgers with thousands of entries.
+
+### Consequences
+- Data is device-local and does not sync across browsers or users — acceptable for the current phase.
+- `clearAllLocalData()` in `SettingsScreen` wipes all IndexedDB stores and `localStorage`, restoring factory defaults.
+- Phase 6+ will introduce a proper MongoDB backend when multi-user, multi-tenant data sync is required.
+
+---
+
+## ADR-009: Phase 3–5 Screen Architecture — Standalone Workspace Tabs
+
+### Date
+2026-09-09
+
+### Context / Problem
+Phases 3, 4, and 5 each introduce multi-screen feature areas (FHIR ingestion, India Stack, commerce, federated catalog, fleet telemetry). These could be integrated as sub-panels inside existing screens or as independent top-level workspace tabs.
+
+### Decision Taken
+Each Phase 3–5 feature area is a **standalone workspace tab** registered in the `ActiveTab` union, rendered in the ops viewport, and navigable via the `RailDrawer` sidebar.
+
+### Reasoning
+- **Cognitive separation**: Clinical operators, compliance officers, and finance teams use distinct workspaces; mixing them would violate the single-responsibility principle for each screen.
+- **Uniform routing model**: All screens follow the same `activeTab === 'xxx'` branch pattern — consistent, predictable, zero routing library overhead.
+- **Progressive disclosure**: Phase 3–5 tabs are grouped under labelled section headers in the drawer, making their phase membership explicit without overwhelming the core Phase 1–2 navigation.
+
+### Consequences
+- `ActiveTab` union grew from 7 to 12 values: `overview | catalog | partners | compliance | settings | patient | deliveries | fhir | indiastack | commerce | federated | fleet`.
+- `RailDrawer` is now scrollable (`overflow-y-auto`) to accommodate all 12 nav items without visual overflow.
+- Each new screen is self-contained with its own mock data file (`mockPhase3Data.ts`, `mockPhase4Data.ts`, `mockPhase5Data.ts`), keeping Phase 1–2 data files untouched.
