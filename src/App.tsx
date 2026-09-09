@@ -41,7 +41,18 @@ import {
   AuthMode,
   DeliveryOrder,
   ThemeMode,
+  RxScanState,
+  RxScanResult,
+  WebSocketMessage,
 } from './types';
+import {
+  getAllDeliveries, saveAllDeliveries,
+  getAllAuditEvents, saveAllAuditEvents,
+  getAllDrugs, saveAllDrugs,
+  clearAllLocalData,
+} from './lib/db';
+import { usePersistedList } from './hooks/usePersistedState';
+import { useWebSocket } from './hooks/useWebSocket';
 
 export function App() {
   // Visual Theme State (Dark / Light Mode)
@@ -97,8 +108,12 @@ export function App() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
   const [isSessionLocked, setIsSessionLocked] = useState<boolean>(false);
 
-  // Deliveries & Prescription Tracking State (Amazon-Style)
-  const [deliveries, setDeliveries] = useState<DeliveryOrder[]>(MOCK_DELIVERIES);
+  // Deliveries & Prescription Tracking State (Amazon-Style & IndexedDB Persisted)
+  const [deliveries, setDeliveries] = usePersistedList<DeliveryOrder>(
+    getAllDeliveries,
+    saveAllDeliveries,
+    MOCK_DELIVERIES
+  );
   const [isOrderModalOpen, setIsOrderModalOpen] = useState<boolean>(false);
   const [orderModalDrug, setOrderModalDrug] = useState<DrugItem | null>(null);
   const [isTrackingModalOpen, setIsTrackingModalOpen] = useState<boolean>(false);
@@ -108,14 +123,86 @@ export function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   const [tenantScope, setTenantScope] = useState<TenantScope>('all');
 
-  // Core Data
-  const [drugs, setDrugs] = useState<DrugItem[]>(INITIAL_DRUGS);
+  // Core Data (IndexedDB Persisted)
+  const [drugs, setDrugs] = usePersistedList<DrugItem>(
+    getAllDrugs,
+    saveAllDrugs,
+    INITIAL_DRUGS
+  );
   const [selectedDrugId, setSelectedDrugId] = useState<string>('drug-atorvastatin');
   const [partners, setPartners] = useState<PartnerPharmacy[]>(INITIAL_PARTNERS);
-  const [auditEvents, setAuditEvents] = useState<AuditEvent[]>(INITIAL_AUDIT_EVENTS);
+  const [auditEvents, setAuditEvents] = usePersistedList<AuditEvent>(
+    getAllAuditEvents,
+    saveAllAuditEvents,
+    INITIAL_AUDIT_EVENTS
+  );
   const [eventLogs, setEventLogs] = useState<EventBusMessage[]>(INITIAL_EVENT_BUS_LOGS);
   const [gateways, setGateways] = useState(INITIAL_SERVICE_GATEWAYS);
   const [systemConfig, setSystemConfig] = useState(INITIAL_SYSTEM_CONFIG);
+
+  // Sprint 2.1 — Gemini Prescription Scanner State
+  const [rxScanState, setRxScanState] = useState<RxScanState>({
+    isScanning: false,
+    result: null,
+    error: null,
+    uploadedImageUrl: null,
+  });
+
+  // Sprint 2.3 — WebSocket Gateway Integration
+  const handleWebSocketMessage = React.useCallback((msg: WebSocketMessage) => {
+    if (msg.channel === 'event-bus') {
+      setEventLogs((prev) => [msg.payload, ...prev.slice(0, 49)]);
+    } else if (msg.channel === 'cold-chain-temp') {
+      const reading = msg.payload;
+      setDeliveries((prev) =>
+        prev.map((d) =>
+          d.id === reading.orderId
+            ? {
+                ...d,
+                coldChain: {
+                  ...d.coldChain,
+                  currentTempCelsius: reading.tempCelsius,
+                  sensorStatus: reading.sensorStatus,
+                },
+              }
+            : d
+        )
+      );
+    } else if (msg.channel === 'partner-sync') {
+      const sync = msg.payload;
+      setPartners((prev) =>
+        prev.map((p) =>
+          p.id === sync.partnerId
+            ? {
+                ...p,
+                feedStatus: sync.feedStatus,
+                syncInfo: {
+                  ...p.syncInfo,
+                  latencyMs: sync.latencyMs,
+                  skuCount: sync.skuCount,
+                  lastSyncTime: 'Just now (WSS Push)',
+                },
+              }
+            : p
+        )
+      );
+    } else if (msg.channel === 'delivery-status') {
+      const update = msg.payload;
+      setDeliveries((prev) =>
+        prev.map((d) =>
+          d.id === update.orderId
+            ? {
+                ...d,
+                status: update.newStatus,
+                statusLabel: update.statusLabel,
+              }
+            : d
+        )
+      );
+    }
+  }, [setDeliveries, setPartners]);
+
+  const { connectionState } = useWebSocket(handleWebSocketMessage);
 
   // Rollback state (triggers Screen 9 behavior)
   const [isRollbackActive, setIsRollbackActive] = useState<boolean>(false);

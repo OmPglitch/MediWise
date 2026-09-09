@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Search,
   ShieldCheck,
@@ -24,9 +24,15 @@ import {
   Package,
   Check,
   Sun,
-  Moon
+  Moon,
+  Upload,
+  Camera,
+  Loader2,
+  FileCheck,
+  RefreshCw,
+  Zap,
 } from 'lucide-react';
-import { DrugItem, UserProfile, ThemeMode } from '../../types';
+import { DrugItem, UserProfile, ThemeMode, RxScanState, RxScanResult } from '../../types';
 
 interface PatientPortalScreenProps {
   drugs: DrugItem[];
@@ -41,6 +47,9 @@ interface PatientPortalScreenProps {
   currentUser?: UserProfile | null;
   theme?: ThemeMode;
   onToggleTheme?: () => void;
+  rxScanState?: RxScanState;
+  onScanPrescription?: (file: File) => Promise<void>;
+  onResetScan?: () => void;
 }
 
 export const PatientPortalScreen: React.FC<PatientPortalScreenProps> = ({
@@ -56,11 +65,16 @@ export const PatientPortalScreen: React.FC<PatientPortalScreenProps> = ({
   currentUser,
   theme = 'dark',
   onToggleTheme,
+  rxScanState,
+  onScanPrescription,
+  onResetScan,
 }) => {
   const [searchQuery, setSearchQuery] = useState('Lipitor');
   const [selectedDrug, setSelectedDrug] = useState<DrugItem>(drugs[0]);
   const [showClinicalAccordion, setShowClinicalAccordion] = useState(true);
   const [selectedPharmacyFilter, setSelectedPharmacyFilter] = useState<'all' | 'lowest' | 'fastest'>('all');
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleSearch = (name: string) => {
     setSearchQuery(name);
@@ -183,6 +197,191 @@ export const PatientPortalScreen: React.FC<PatientPortalScreenProps> = ({
             Order Now
           </button>
         </div>
+      </div>
+
+      {/* SPRINT 2.1 — GEMINI RX PRESCRIPTION SCANNER */}
+      <div className="bg-[#0d1424] border border-cyan-500/40 rounded-xl p-5 shadow-lg space-y-4 relative overflow-hidden">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-[#1e293b]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-cyan-950/80 border border-cyan-800 text-cyan-400 flex items-center justify-center">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-white font-['Hanken_Grotesk'] flex items-center gap-2">
+                <span>AI Prescription Scanner & Generic Switcher</span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-950 text-cyan-300 border border-cyan-800">
+                  Gemini 2.5 Flash
+                </span>
+              </h2>
+              <p className="text-[11px] text-[#94a3b8]">
+                Upload a handwritten doctor's slip or printed Rx to instantly extract the prescribed salt and identify savings
+              </p>
+            </div>
+          </div>
+          {rxScanState?.result && (
+            <button
+              onClick={onResetScan}
+              className="h-7 px-2.5 bg-[#1e293b] hover:bg-[#334155] text-white text-xs rounded flex items-center gap-1 transition-colors cursor-pointer"
+            >
+              <RefreshCw className="w-3 h-3" />
+              <span>Scan Another Rx</span>
+            </button>
+          )}
+        </div>
+
+        {/* Scanner Body */}
+        {rxScanState?.isScanning ? (
+          <div className="p-8 border border-cyan-500/30 rounded-lg bg-[#090d16] flex flex-col items-center justify-center space-y-3 text-center animate-pulse">
+            <div className="w-12 h-12 rounded-full bg-cyan-950/80 border border-cyan-500 flex items-center justify-center text-cyan-400">
+              <Loader2 className="w-6 h-6 animate-spin" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-sm font-bold text-white">Gemini Vision Analyzing Prescription...</h3>
+              <p className="text-xs text-[#94a3b8] max-w-md">
+                De-identifying clinical metadata, transcribing prescriber calligraphy, and cross-matching with Jan Aushadhi bioequivalence monographs.
+              </p>
+            </div>
+          </div>
+        ) : rxScanState?.result ? (
+          <div className="p-4 bg-[#090d16] border border-emerald-500/30 rounded-lg space-y-3">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-800 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" />
+                  <span>{(rxScanState.result.confidence * 100).toFixed(0)}% Confidence Match</span>
+                </span>
+                {rxScanState.result.scheduleFlag !== 'none' && (
+                  <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-amber-950 text-amber-300 border border-amber-800">
+                    Schedule {rxScanState.result.scheduleFlag}
+                  </span>
+                )}
+              </div>
+              <span className="text-[11px] text-[#64748b]">Prescriber: <strong className="text-white">{rxScanState.result.physicianName}</strong></span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div className="p-3 bg-[#0d1424] border border-[#1e293b] rounded">
+                <span className="text-[10px] text-[#64748b] uppercase block">Prescribed Medication</span>
+                <div className="text-sm font-bold text-white font-['Hanken_Grotesk'] mt-0.5">
+                  {rxScanState.result.drugName}
+                </div>
+                <div className="text-xs text-[#94a3b8] mt-1 font-mono">
+                  {rxScanState.result.dosage} • {rxScanState.result.strength}
+                </div>
+              </div>
+
+              <div className="p-3 bg-gradient-to-r from-emerald-950/40 to-[#0d1424] border border-emerald-500/40 rounded">
+                <span className="text-[10px] text-emerald-400 font-bold uppercase block flex items-center gap-1">
+                  <Zap className="w-3 h-3" />
+                  Recommended Generic Equivalent
+                </span>
+                <div className="text-sm font-bold text-emerald-300 font-['Hanken_Grotesk'] mt-0.5">
+                  {rxScanState.result.matchedDrugName || 'Atorvastatin Calcium Generic'}
+                </div>
+                <div className="text-xs text-emerald-400/80 mt-1">
+                  FDA AB Rated • Chemical Bioequivalence Confirmed
+                </div>
+              </div>
+            </div>
+
+            {rxScanState.result.warnings.length > 0 && (
+              <div className="p-2.5 bg-amber-950/30 border border-amber-800/40 rounded text-[11px] text-amber-300 space-y-1">
+                {rxScanState.result.warnings.map((w, idx) => (
+                  <div key={idx} className="flex items-start gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                    <span>{w}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#1e293b]">
+              <button
+                onClick={() => {
+                  const matched = drugs.find((d) => d.id === rxScanState.result?.matchedDrugId) || drugs[0];
+                  setSelectedDrug(matched);
+                  onOpenDoctorSlip(matched);
+                }}
+                className="h-8 px-3 bg-[#1e293b] hover:bg-[#334155] text-white text-xs font-semibold rounded flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <FileText className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Download Doctor Consent Slip</span>
+              </button>
+              <button
+                onClick={() => {
+                  const matched = drugs.find((d) => d.id === rxScanState.result?.matchedDrugId) || drugs[0];
+                  setSelectedDrug(matched);
+                  onOpenOrderModal(matched);
+                }}
+                className="h-8 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded flex items-center gap-1.5 shadow transition-all cursor-pointer"
+              >
+                <Truck className="w-3.5 h-3.5" />
+                <span>Order This Generic for Delivery</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDraggingFile(true);
+            }}
+            onDragLeave={() => setIsDraggingFile(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setIsDraggingFile(false);
+              if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                onScanPrescription?.(e.dataTransfer.files[0]);
+              }
+            }}
+            className={`p-6 border-2 border-dashed rounded-lg transition-colors flex flex-col items-center justify-center text-center gap-3 cursor-pointer ${
+              isDraggingFile
+                ? 'border-cyan-400 bg-cyan-950/30'
+                : 'border-[#1e293b] hover:border-cyan-500/50 bg-[#090d16]'
+            }`}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*,.pdf"
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  onScanPrescription?.(e.target.files[0]);
+                }
+              }}
+            />
+            <div className="w-12 h-12 rounded-full bg-cyan-950/60 border border-cyan-800 text-cyan-400 flex items-center justify-center">
+              <Upload className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <div className="text-sm font-bold text-white">
+                Drag & drop your prescription image here, or <span className="text-cyan-400 underline">browse files</span>
+              </div>
+              <p className="text-xs text-[#64748b]">
+                Supports JPG, PNG, WebP or photographed doctor slips (Max 15MB)
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Create a simulated file to trigger the demo analysis
+                  const blob = new Blob(['sample-prescription'], { type: 'image/jpeg' });
+                  const demoFile = new File([blob], 'rx-demo-lipitor.jpg', { type: 'image/jpeg' });
+                  onScanPrescription?.(demoFile);
+                }}
+                className="h-7 px-3 bg-[#1e293b] hover:bg-cyan-950 hover:border-cyan-600 border border-[#334155] text-cyan-300 text-xs rounded flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Test Demo Prescription (Instant Scan)</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Main Search Bar & Quick Selector */}

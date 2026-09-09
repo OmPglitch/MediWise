@@ -257,3 +257,206 @@ export interface DeliveryOrder {
   };
 }
 
+// ==========================================
+// PHASE 2: INTELLIGENCE & REAL-TIME TYPES
+// ==========================================
+
+export interface RxScanResult {
+  drugName: string;
+  dosage: string;
+  strength: string;
+  physicianName: string;
+  scheduleFlag: 'H' | 'H1' | 'X' | 'none' | 'unknown';
+  confidence: number;             // 0.0 – 1.0
+  matchedDrugId: string | null;   // cross-ref to DrugItem.id
+  matchedDrugName?: string;
+  rawExtractedText: string;
+  warnings: string[];
+}
+
+export interface RxScanState {
+  isScanning: boolean;
+  result: RxScanResult | null;
+  error: string | null;
+  uploadedImageUrl: string | null;
+}
+
+export interface WebSocketMessage {
+  channel: 'event-bus' | 'delivery-status' | 'partner-sync' | 'cold-chain-temp' | 'fhir-event' | 'telemetry';
+  payload: any;
+  timestamp: string;
+}
+
+export interface DeliveryStatusUpdate {
+  orderId: string;
+  newStatus: DeliveryStatus;
+  statusLabel: string;
+  timestamp: string;
+  location?: string;
+}
+
+export interface PartnerSyncHeartbeat {
+  partnerId: string;
+  latencyMs: number;
+  skuCount: number;
+  feedStatus: 'live' | 'active' | 'synced' | 'warning';
+  timestamp: string;
+}
+
+export interface ColdChainReading {
+  orderId: string;
+  tempCelsius: number;
+  sensorStatus: 'optimal' | 'warning' | 'critical';
+  timestamp: string;
+}
+
+// ==========================================
+// PHASE 3: HEALTHCARE INTEGRATION TYPES
+// ==========================================
+
+export interface FHIRMedicationRequest {
+  id: string;
+  resourceType: 'MedicationRequest';
+  status: 'active' | 'completed' | 'cancelled' | 'draft';
+  intent: 'order';
+  medicationCodeableConcept: {
+    coding: Array<{
+      system: string; // e.g. "http://www.nlm.nih.gov/research/umls/rxnorm"
+      code: string;
+      display: string;
+    }>;
+    text: string;
+  };
+  subject: {
+    reference: string;
+    display: string; // Patient ABDM / ABHA ID
+  };
+  requester: {
+    display: string; // Physician name
+    identifier?: {
+      system: string;
+      value: string; // NMC / State Council Reg No.
+    };
+  };
+  dosageInstruction: Array<{
+    text: string;
+    timing?: { code: { text: string } };
+  }>;
+  authoredOn: string;
+  mappedDrugId?: string;
+  complianceStatus: 'validated' | 'rejected' | 'pending';
+}
+
+export interface ABHAProfile {
+  abhaId: string;           // 14-digit format: 91-XXXX-XXXX-XXXX
+  abhaAddress: string;      // e.g. patient@abdm
+  fullName: string;
+  gender: 'M' | 'F' | 'O';
+  dateOfBirth: string;
+  mobileVerified: boolean;
+  kycStatus: 'VERIFIED' | 'PENDING';
+  linkedRecordsCount: number;
+}
+
+export interface UHIServiceProvider {
+  providerId: string;
+  providerName: string;
+  serviceType: 'pharmacy' | 'diagnostic' | 'teleconsult';
+  distanceKm: number;
+  availableStock: boolean;
+  rating: number;
+  estimatedFulfillmentMins: number;
+}
+
+export interface CourierCoordinates {
+  orderId: string;
+  latitude: number;
+  longitude: number;
+  headingDegrees: number;
+  speedKmh: number;
+  batteryLevelPct: number;
+  timestamp: string;
+}
+
+// ==========================================
+// PHASE 4: COMMERCE & ESCROW TYPES
+// ==========================================
+
+export interface StripeEscrowPayout {
+  id: string;
+  payoutNumber: string;
+  partnerId: string;
+  partnerName: string;
+  amount: number;
+  currency: 'INR' | 'USD' | 'EUR' | 'GBP' | 'AED';
+  status: 'pending_fulfillment' | 'in_escrow' | 'dual_approval_required' | 'disbursed' | 'failed';
+  escrowReleaseCondition: string;
+  associatedOrderIds: string[];
+  requiresDualAuth: boolean;
+  cmioApproved: boolean;
+  complianceApproved: boolean;
+  disbursedAt?: string;
+  stripeTransferId?: string;
+  createdAt: string;
+}
+
+export interface GSTInvoice {
+  id: string;
+  invoiceNumber: string; // MW/2026-27/INV-00001
+  partnerId: string;
+  partnerGstin: string;
+  buyerName: string;
+  buyerAddress: string;
+  date: string;
+  dueDate: string;
+  hsnCode: string;
+  taxableAmount: number;
+  cgstRatePct: number;
+  cgstAmount: number;
+  sgstRatePct: number;
+  sgstAmount: number;
+  igstRatePct: number;
+  igstAmount: number;
+  totalInvoiceValue: number;
+  irnHash?: string;
+  status: 'draft' | 'generated' | 'filed';
+}
+
+export type SupportedCurrency = 'INR' | 'USD' | 'EUR' | 'GBP' | 'AED';
+
+export interface CurrencyRate {
+  currency: SupportedCurrency;
+  symbol: string;
+  rateToInr: number; // e.g. USD = 86.5, EUR = 93.2, etc.
+}
+
+// ==========================================
+// PHASE 5: SCALE, FEDERATION & FLEET TYPES
+// ==========================================
+
+export type RegulatoryJurisdiction = 'IN_CDSCO' | 'US_FDA' | 'EU_EMA';
+
+export interface RegionalRegulatoryApproval {
+  jurisdiction: RegulatoryJurisdiction;
+  badgeLabel: string;
+  applicationNumber: string; // e.g. ANDA #078912 or EMA/H/C/004521
+  status: 'approved' | 'under_evaluation' | 'clinical_trial' | 'not_registered';
+  registeredMoiety: string;
+  validThrough: string;
+}
+
+export interface FLEETVehicleSensor {
+  vehicleId: string;
+  plateNumber: string;
+  driverName: string;
+  routeSector: string;
+  bleBeaconId: string;
+  ambientTempCelsius: number;
+  chillerTempCelsius: number;
+  chillerTargetMinCelsius: number;
+  chillerTargetMaxCelsius: number;
+  compressorState: 'active' | 'idle' | 'warning';
+  predictedBreachMinutes: number | null; // ML anomaly predictor: null if safe
+  lastPingSecondsAgo: number;
+}
+

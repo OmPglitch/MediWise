@@ -43,6 +43,7 @@ interface EnterpriseHeaderProps {
   onSwitchPersona: (role: UserRole) => void;
   theme: ThemeMode;
   onToggleTheme: () => void;
+  connectionState?: 'connected' | 'reconnecting' | 'disconnected';
 }
 
 export const EnterpriseHeader: React.FC<EnterpriseHeaderProps> = ({
@@ -63,6 +64,7 @@ export const EnterpriseHeader: React.FC<EnterpriseHeaderProps> = ({
   onSwitchPersona,
   theme,
   onToggleTheme,
+  connectionState = 'connected',
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showUserDropdown, setShowUserDropdown] = useState(false);
@@ -109,15 +111,28 @@ export const EnterpriseHeader: React.FC<EnterpriseHeaderProps> = ({
 
         <div className="h-5 w-[1px] bg-[#1e293b] hidden md:block"></div>
 
-        {/* Live Telemetry Health Pill */}
-        <div className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded bg-[#090d16]/80 border border-[#1e293b] text-xs font-mono text-[#cbd5e1]">
+        {/* Live Telemetry / WebSocket Gateway Health Pill */}
+        <div className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded bg-[#090d16]/80 border border-[#1e293b] text-xs font-mono text-[#cbd5e1]" title={`Real-time WebSocket Gateway: ${connectionState.toUpperCase()}`}>
           <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            {connectionState === 'connected' ? (
+              <>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </>
+            ) : connectionState === 'reconnecting' ? (
+              <>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+              </>
+            ) : (
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+            )}
           </span>
-          <span className="text-emerald-400 font-semibold">K8S & REDIS 99.98%</span>
+          <span className={connectionState === 'connected' ? 'text-emerald-400 font-semibold' : connectionState === 'reconnecting' ? 'text-amber-400 font-semibold' : 'text-rose-400 font-semibold'}>
+            {connectionState === 'connected' ? 'WSS LIVE 99.98%' : connectionState === 'reconnecting' ? 'WSS RECONNECTING' : 'WSS OFFLINE'}
+          </span>
           <span className="text-[#64748b]">•</span>
-          <span className="text-[#94a3b8]">138ms P95</span>
+          <span className="text-[#94a3b8]">24ms P95</span>
         </div>
 
         {/* Quick Search */}

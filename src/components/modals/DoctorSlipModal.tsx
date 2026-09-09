@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, Printer, Download, CheckCircle2, ShieldCheck, HeartHandshake, AlertTriangle, FileText } from 'lucide-react';
+import { X, Printer, Download, CheckCircle2, ShieldCheck, HeartHandshake, AlertTriangle, FileText, Loader2 } from 'lucide-react';
 import { DrugItem } from '../../types';
+import { generateSlipPdf } from '../../utils/generateSlipPdf';
 
 interface DoctorSlipModalProps {
   isOpen: boolean;
@@ -16,11 +17,30 @@ export const DoctorSlipModal: React.FC<DoctorSlipModalProps> = ({
   const [patientName, setPatientName] = useState('Jane Doe');
   const [physicianName, setPhysicianName] = useState('Dr. Sarah Jenkins, MD');
   const [copiedSlip, setCopiedSlip] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   if (!isOpen || !drug) return null;
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownloadPdf = async () => {
+    try {
+      setIsGeneratingPdf(true);
+      // Small tick to allow UI to show loader
+      setTimeout(() => {
+        generateSlipPdf({
+          drug,
+          patientName,
+          physicianName,
+        });
+        setIsGeneratingPdf(false);
+      }, 250);
+    } catch (err) {
+      console.error('Failed to generate PDF:', err);
+      setIsGeneratingPdf(false);
+    }
   };
 
   return (
@@ -155,10 +175,27 @@ export const DoctorSlipModal: React.FC<DoctorSlipModalProps> = ({
           </button>
           <button
             onClick={handlePrint}
-            className="h-8 px-4 bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-semibold rounded flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+            className="h-8 px-3.5 bg-[#1e293b] hover:bg-[#334155] text-[#cbd5e1] hover:text-white text-xs font-semibold rounded flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <Printer className="w-3.5 h-3.5" />
-            <span>Print / Save PDF Slip</span>
+            <span>Print View</span>
+          </button>
+          <button
+            onClick={handleDownloadPdf}
+            disabled={isGeneratingPdf}
+            className="h-8 px-4 bg-gradient-to-r from-[#0284c7] to-[#0369a1] hover:from-[#0369a1] hover:to-[#075985] text-white text-xs font-semibold rounded flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50"
+          >
+            {isGeneratingPdf ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Generating PDF...</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-3.5 h-3.5" />
+                <span>Download PDF Slip</span>
+              </>
+            )}
           </button>
         </div>
       </div>

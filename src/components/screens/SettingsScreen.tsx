@@ -18,7 +18,8 @@ import {
   Cpu,
   Sun,
   Moon,
-  Palette
+  Palette,
+  Trash2,
 } from 'lucide-react';
 import { ServiceGateway, SystemConfig, ThemeMode } from '../../types';
 
@@ -34,6 +35,7 @@ interface SettingsScreenProps {
   pingingId: string | null;
   theme?: ThemeMode;
   onSelectTheme?: (mode: ThemeMode) => void;
+  onClearLocalData?: () => Promise<void>;
 }
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
@@ -48,8 +50,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   pingingId,
   theme = 'dark',
   onSelectTheme,
+  onClearLocalData,
 }) => {
   const [activeSubtab, setActiveSubtab] = useState<'gateways' | 'quotas' | 'yaml' | 'appearance'>('gateways');
+  const [isClearing, setIsClearing] = useState(false);
 
   return (
     <div className="space-y-5">
@@ -95,6 +99,27 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
         {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-2">
+          {onClearLocalData && (
+            <button
+              onClick={async () => {
+                if (window.confirm('Clear all local IndexedDB cache, custom orders, and audit entries? This resets to factory seed data.')) {
+                  setIsClearing(true);
+                  try {
+                    await onClearLocalData();
+                  } finally {
+                    setIsClearing(false);
+                  }
+                }
+              }}
+              disabled={isClearing}
+              className="h-8 px-3 bg-red-950/30 border border-red-800/50 hover:bg-red-900/40 text-red-300 hover:text-white text-xs font-semibold rounded flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+              title="Purge browser IndexedDB cache & reload factory state"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-red-400" />
+              <span>{isClearing ? 'Purging...' : 'Clear Local Data'}</span>
+            </button>
+          )}
+
           <button
             onClick={onBackupSnapshot}
             className="h-8 px-3 bg-[#0d1424] border border-[#1e293b] hover:bg-[#1e293b] text-[#cbd5e1] hover:text-white text-xs font-semibold rounded flex items-center gap-1.5 transition-colors cursor-pointer"
