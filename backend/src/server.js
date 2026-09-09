@@ -7,7 +7,7 @@
  */
 
 const path = require('path');
-// Load .env from backend/ directory
+// Load .env — works on all Node versions via dotenv package
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const http    = require('http');

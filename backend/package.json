@@ -5,16 +5,16 @@
   "main": "src/server.js",
   "type": "commonjs",
   "scripts": {
-    "dev": "nodemon --env-file .env src/server.js",
-    "start": "node --env-file .env src/server.js",
-    "seed": "node --env-file .env src/seed/seed.js"
+    "build": "echo 'No build step required for Node.js backend'",
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "seed": "node src/seed/seed.js"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
-    "mongodb": "^7.6.0",
     "mongoose": "^8.5.1",
     "ws": "^8.18.0"
   },
@@ -22,6 +22,6 @@
     "nodemon": "^3.1.4"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": "18.x"
   }
 }
