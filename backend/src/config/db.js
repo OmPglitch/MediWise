@@ -12,7 +12,7 @@ const BASE_DELAY_MS = 1500;
 async function connectDB() {
   const uri = process.env.MONGODB_URI;
   if (!uri) {
-    throw new Error('[DB] MONGODB_URI environment variable is not set. Add it to server/.env');
+    throw new Error('[DB] MONGODB_URI environment variable is not set. Add it to backend/.env');
   }
 
   mongoose.set('strictQuery', true);

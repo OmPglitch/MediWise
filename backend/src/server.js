@@ -1,30 +1,37 @@
 'use strict';
 
-const path    = require('path');
-require('dotenv').config({ path: path.join(__dirname, '.env') });
+/**
+ * MediWise Backend — Express + MongoDB + WebSocket server
+ * Entry point: backend/src/server.js
+ * Start: npm run dev  (from backend/)
+ */
+
+const path = require('path');
+// Load .env from backend/ directory
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const http    = require('http');
 const express = require('express');
 const { WebSocketServer, WebSocket } = require('ws');
 
-const { connectDB }   = require('../backend/src/config/db');
-const corsMiddleware  = require('../backend/src/middleware/corsConfig');
-const { notFound, errorHandler } = require('../backend/src/middleware/errorHandler');
+const { connectDB }              = require('./config/db');
+const corsMiddleware             = require('./middleware/corsConfig');
+const { notFound, errorHandler, asyncHandler } = require('./middleware/errorHandler');
 
 // ── Route imports ─────────────────────────────────────────────────────────────
 const drugRoutes       = require('./routes/drugs');
 const partnerRoutes    = require('./routes/partners');
 const deliveryRoutes   = require('./routes/deliveries');
-const complianceRoutes = require('../backend/src/routes/compliance');
-const authRoutes       = require('../backend/src/routes/auth');
-const commerceRoutes   = require('../backend/src/routes/commerce');
+const complianceRoutes = require('./routes/compliance');
+const authRoutes       = require('./routes/auth');
+const commerceRoutes   = require('./routes/commerce');
 
 // ── Gemini AI (optional) ──────────────────────────────────────────────────────
 let GoogleGenAI;
 try {
   GoogleGenAI = require('@google/genai').GoogleGenAI;
 } catch {
-  console.warn('[Server] @google/genai not available — Rx scanner will use demo mode');
+  console.warn('[Server] @google/genai not available — Rx scanner will run in demo mode');
 }
 
 // ── App setup ─────────────────────────────────────────────────────────────────
@@ -32,41 +39,44 @@ const app    = express();
 const server = http.createServer(app);
 const PORT   = process.env.PORT || 5000;
 
-// ── Middleware ────────────────────────────────────────────────────────────────
+// ── Global middleware ─────────────────────────────────────────────────────────
 app.use(corsMiddleware);
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// ── Health check (no DB needed) ───────────────────────────────────────────────
+// ── Health check ──────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   const mongoose = require('mongoose');
   res.json({
     status: 'healthy',
-    service: 'MediWise Operations Gateway (MongoDB)',
+    service: 'MediWise Backend (Express + MongoDB)',
+    version: '2.0.0',
     timestamp: new Date().toISOString(),
     database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
     dbName: mongoose.connection.name || 'mediwise',
-    geminiConfigured: Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'YOUR_GEMINI_API_KEY'),
+    geminiConfigured: Boolean(
+      process.env.GEMINI_API_KEY &&
+      process.env.GEMINI_API_KEY !== 'YOUR_GEMINI_API_KEY'
+    ),
     activeWsClients: wss.clients.size,
     nodeEnv: process.env.NODE_ENV || 'development',
   });
 });
 
-// ── API Routes ────────────────────────────────────────────────────────────────
-app.use('/api/drugs',         drugRoutes);
-app.use('/api/partners',      partnerRoutes);
-app.use('/api/deliveries',    deliveryRoutes);
-app.use('/api/compliance',    complianceRoutes);
-app.use('/api/auth',          authRoutes);
-app.use('/api/users',         authRoutes);       // alias: GET /api/users → auth router
-app.use('/api/commerce',      commerceRoutes);
+// ── REST API routes ───────────────────────────────────────────────────────────
+app.use('/api/drugs',      drugRoutes);
+app.use('/api/partners',   partnerRoutes);
+app.use('/api/deliveries', deliveryRoutes);
+app.use('/api/compliance', complianceRoutes);
+app.use('/api/auth',       authRoutes);
+app.use('/api/users',      authRoutes);      // alias for GET /api/users
+app.use('/api/commerce',   commerceRoutes);
 
-// ── Stripe escrow legacy path (direct controller call — matches original server.ts endpoint) ──
-const { disbursePayout } = require('../backend/src/controllers/commerceController');
-const { asyncHandler }   = require('../backend/src/middleware/errorHandler');
+// ── Stripe escrow legacy endpoint (direct controller, mirrors original path) ──
+const { disbursePayout } = require('./controllers/commerceController');
 app.post('/api/stripe/escrow-payout', asyncHandler(disbursePayout));
 
-// ── FHIR ingest endpoint ──────────────────────────────────────────────────────
+// ── FHIR R4 bundle ingest ─────────────────────────────────────────────────────
 app.post('/api/fhir/ingest', (req, res) => {
   const bundle    = req.body;
   const requestId = `FHIR-${Date.now().toString(36).toUpperCase()}`;
@@ -93,7 +103,7 @@ app.post('/api/fhir/ingest', (req, res) => {
   });
 });
 
-// ── Gemini Rx Scanner proxy ───────────────────────────────────────────────────
+// ── Gemini Rx prescription scanner proxy ──────────────────────────────────────
 app.post('/api/rx/scan', async (req, res) => {
   const { imageBase64, mimeType = 'image/jpeg' } = req.body;
 
@@ -103,6 +113,7 @@ app.post('/api/rx/scan', async (req, res) => {
 
   const apiKey = process.env.GEMINI_API_KEY;
 
+  // Demo/mock mode when no real API key is configured
   if (!apiKey || apiKey.trim() === '' || apiKey === 'YOUR_GEMINI_API_KEY' || !GoogleGenAI) {
     console.log('[RxScan] Demo mode — returning clinical mock extraction');
     return setTimeout(() => res.json({
@@ -116,7 +127,7 @@ app.post('/api/rx/scan', async (req, res) => {
       matchedDrugName: 'Atorvastatin Calcium (Generic Lipitor)',
       rawExtractedText: 'Rx: Lipitor (Atorvastatin) 20mg Tab #30 Sig: 1 po qhs. Refills: 3.',
       warnings: [
-        'Demo Mode: Set GEMINI_API_KEY in server/.env to enable live scanning.',
+        'Demo Mode: Set GEMINI_API_KEY in backend/.env to enable live scanning.',
         'Schedule H drug: Dispensing requires pharmacist clinical verification slip.',
       ],
     }), 1200);
@@ -126,9 +137,19 @@ app.post('/api/rx/scan', async (req, res) => {
     const ai = new GoogleGenAI({ apiKey });
     const cleanBase64 = imageBase64.replace(/^data:image\/[a-zA-Z]+;base64,/, '');
 
-    const systemPrompt = `You are an expert clinical pharmacist and AI prescription parser.
+    const systemPrompt = `You are an expert clinical pharmacist and AI prescription parser for MediWise Operations.
 Extract the primary prescribed medication, dosage, strength, physician name, and regulatory schedule flag.
-Return ONLY valid JSON: { "drugName": string, "dosage": string, "strength": string, "physicianName": string, "scheduleFlag": "H"|"H1"|"X"|"none"|"unknown", "confidence": number, "rawExtractedText": string, "warnings": string[] }`;
+Return ONLY valid JSON — no markdown, no preamble:
+{
+  "drugName": string,
+  "dosage": string,
+  "strength": string,
+  "physicianName": string,
+  "scheduleFlag": "H" | "H1" | "X" | "none" | "unknown",
+  "confidence": number,
+  "rawExtractedText": string,
+  "warnings": string[]
+}`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
@@ -140,10 +161,14 @@ Return ONLY valid JSON: { "drugName": string, "dosage": string, "strength": stri
       res.json(JSON.parse(raw));
     } catch {
       res.json({
-        drugName: 'Extracted Medication', dosage: 'See instructions', strength: 'Standard',
-        physicianName: 'Attending Physician', scheduleFlag: 'H', confidence: 0.75,
+        drugName: 'Extracted Medication',
+        dosage: 'See instructions',
+        strength: 'Standard',
+        physicianName: 'Attending Physician',
+        scheduleFlag: 'H',
+        confidence: 0.75,
         rawExtractedText: raw,
-        warnings: ['Low confidence parse. Manual pharmacist review recommended.'],
+        warnings: ['Low confidence parse — manual pharmacist review recommended.'],
       });
     }
   } catch (err) {
@@ -165,6 +190,7 @@ function broadcastWS(msg) {
 wss.on('connection', (ws) => {
   console.log(`[WS] Client connected (total: ${wss.clients.size})`);
 
+  // Initial handshake
   ws.send(JSON.stringify({
     channel: 'event-bus',
     payload: {
@@ -172,7 +198,7 @@ wss.on('connection', (ws) => {
       timestamp: new Date().toISOString(),
       eventType: 'GATEWAY_CONNECTED',
       severity: 'SUCCESS',
-      sourceSystem: 'MediWise Real-time Engine (MongoDB)',
+      sourceSystem: 'MediWise Real-time Engine',
       message: 'Secure WebSocket session active. Real-time telemetry streaming.',
     },
     timestamp: new Date().toISOString(),
@@ -181,26 +207,36 @@ wss.on('connection', (ws) => {
   ws.on('message', (data) => {
     try {
       const p = JSON.parse(data.toString());
-      if (p.type === 'ping') ws.send(JSON.stringify({ type: 'pong', timestamp: new Date().toISOString() }));
-    } catch { /* ignore */ }
+      if (p.type === 'ping') {
+        ws.send(JSON.stringify({ type: 'pong', timestamp: new Date().toISOString() }));
+      }
+    } catch { /* ignore malformed messages */ }
   });
 
-  ws.on('close', () => console.log(`[WS] Client disconnected (total: ${wss.clients.size})`));
+  ws.on('close', () => {
+    console.log(`[WS] Client disconnected (total: ${wss.clients.size})`);
+  });
 });
 
-// Live simulation heartbeat — pushes cold-chain, partner-sync, and event-bus messages
+// ── Live telemetry heartbeat (10s interval) ───────────────────────────────────
 let tickCount = 0;
 setInterval(() => {
   tickCount++;
   const temp = +(3.8 + Math.sin(tickCount) * 0.4).toFixed(1);
 
-  // Cold chain telemetry for the first active delivery
+  // 1. Cold-chain IoT sensor ping
   broadcastWS({
     channel: 'cold-chain-temp',
-    payload: { orderId: 'del-ord-001', tempCelsius: temp, sensorStatus: temp > 6.0 ? 'warning' : 'optimal', timestamp: new Date().toISOString() },
+    payload: {
+      orderId: 'del-ord-001',
+      tempCelsius: temp,
+      sensorStatus: temp > 6.0 ? 'warning' : 'optimal',
+      timestamp: new Date().toISOString(),
+    },
     timestamp: new Date().toISOString(),
   });
 
+  // 2. Partner pharmacy sync heartbeat (every 2nd tick)
   if (tickCount % 2 === 0) {
     broadcastWS({
       channel: 'partner-sync',
@@ -215,35 +251,53 @@ setInterval(() => {
     });
   }
 
+  // 3. Event bus operational log (every 3rd tick)
   if (tickCount % 3 === 0) {
     const msgs = [
-      { eventType: 'PRESCRIPTION_VERIFIED', sourceSystem: 'Gemini Vision Engine', message: `Prescription scanned & verified. Generic auto-matched at 99.4% Cmax parity.` },
-      { eventType: 'COLD_CHAIN_TELEMETRY',  sourceSystem: 'IoT BLE Van Beacon #412', message: `Insulated chiller box maintaining ${temp}°C within 2°C–8°C envelope.` },
-      { eventType: 'DYNAMIC_PRICING_SYNC',  sourceSystem: 'NPPA Price Monitor', message: 'Jan Aushadhi national price ceiling cross-checked. MediWise saves 88.2% vs brand.' },
+      {
+        eventType: 'PRESCRIPTION_VERIFIED',
+        sourceSystem: 'Gemini Vision Engine',
+        message: 'Prescription scanned & verified. Generic auto-matched at 99.4% Cmax parity.',
+      },
+      {
+        eventType: 'COLD_CHAIN_TELEMETRY',
+        sourceSystem: 'IoT BLE Van Beacon #412',
+        message: `Insulated chiller box maintaining ${temp}°C within 2°C–8°C envelope.`,
+      },
+      {
+        eventType: 'DYNAMIC_PRICING_SYNC',
+        sourceSystem: 'NPPA Price Monitor',
+        message: 'Jan Aushadhi price ceiling cross-checked. MediWise saves 88.2% vs brand.',
+      },
     ];
     broadcastWS({
       channel: 'event-bus',
-      payload: { id: `evt-auto-${Date.now()}`, timestamp: new Date().toISOString(), ...msgs[tickCount % msgs.length] },
+      payload: {
+        id: `evt-auto-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        ...msgs[tickCount % msgs.length],
+      },
       timestamp: new Date().toISOString(),
     });
   }
 }, 10000);
 
-// ── Error handling (must be after all routes) ─────────────────────────────────
+// ── Error handling middleware (must come after all routes) ────────────────────
 app.use(notFound);
 app.use(errorHandler);
 
-// ── Bootstrap ─────────────────────────────────────────────────────────────────
+// ── Start server ──────────────────────────────────────────────────────────────
 async function start() {
   try {
     await connectDB();
     server.listen(PORT, () => {
-      console.log(`\n🚀  MediWise Server running on http://localhost:${PORT}`);
-      console.log(`📡  WebSocket gateway: ws://localhost:${PORT}/ws`);
-      console.log(`🍃  MongoDB: ${process.env.MONGODB_URI}\n`);
+      console.log(`\n🚀  MediWise Backend running  →  http://localhost:${PORT}`);
+      console.log(`📡  WebSocket gateway          →  ws://localhost:${PORT}/ws`);
+      console.log(`🍃  MongoDB URI                →  ${process.env.MONGODB_URI}`);
+      console.log(`🌐  Allowed CORS origin        →  ${process.env.APP_URL || 'http://localhost:3000'}\n`);
     });
   } catch (err) {
-    console.error('❌  Server failed to start:', err.message);
+    console.error('❌  Backend failed to start:', err.message);
     process.exit(1);
   }
 }

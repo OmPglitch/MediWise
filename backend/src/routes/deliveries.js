@@ -1,7 +1,7 @@
 'use strict';
 
 const router = require('express').Router();
-const { asyncHandler } = require('../middleware/errorHandler');
+const { asyncHandler } = require('../../backend/src/middleware/errorHandler');
 const {
   getAllDeliveries, getDeliveryById, trackDelivery,
   createDelivery, updateDelivery, updateColdChainTemp, deleteDelivery,
