@@ -82,7 +82,7 @@ export function App() {
     }
     try {
       localStorage.setItem('mediwise_theme', theme);
-    } catch {
+    } catch (_e) {
       // Ignore quota errors
     }
   }, [theme]);

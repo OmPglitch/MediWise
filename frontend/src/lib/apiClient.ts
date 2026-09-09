@@ -32,7 +32,7 @@ async function apiFetch<T>(
     try {
       const body = await res.json();
       message = body.error || message;
-    } catch { /* no JSON body */ }
+    } catch (_e) { /* no JSON body */ }
     const err = new Error(message);
     (err as any).status = res.status;
     throw err;

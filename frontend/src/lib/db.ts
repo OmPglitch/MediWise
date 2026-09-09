@@ -94,7 +94,7 @@ export async function getPreference<T>(key: string, defaultValue: T): Promise<T>
   try {
     const raw = localStorage.getItem(`mediwise_pref_${key}`);
     return raw !== null ? (JSON.parse(raw) as T) : defaultValue;
-  } catch {
+  } catch (_e) {
     return defaultValue;
   }
 }
@@ -102,7 +102,7 @@ export async function getPreference<T>(key: string, defaultValue: T): Promise<T>
 export async function setPreference(key: string, value: unknown): Promise<void> {
   try {
     localStorage.setItem(`mediwise_pref_${key}`, JSON.stringify(value));
-  } catch {
+  } catch (_e) {
     console.warn('[DB] setPreference: localStorage write failed for key:', key);
   }
 }
@@ -123,7 +123,7 @@ export async function clearAllLocalData(): Promise<void> {
       if (k && k.startsWith('mediwise_')) keysToRemove.push(k);
     }
     keysToRemove.forEach((k) => localStorage.removeItem(k));
-  } catch {
+  } catch (_e) {
     // Ignore storage errors
   }
 }
